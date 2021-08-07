@@ -60,18 +60,22 @@ class WikiScraper():
     def parse_tables(self):
         for raw_table in self.raw_tables:
             parsed_table = raw_table.copy()
-            parsed_table[('parsed', 'from')
-            ] = parsed_table[('Term of office',     'Took office')].apply(from_to_date_parser)
-            parsed_table[('parsed', 'to')
-            ] = parsed_table[('Term of office', 'Left office')].apply(from_to_date_parser)
-            self.parse_errors.append(parsed_table[(parsed_table[('parsed', 'to')] == 'parsing error') | (parsed_table[('parsed', 'from')] == 'parsing error')])
+            parsed_table['from'
+            ] = parsed_table[parsed_table.columns[3]].apply(from_to_date_parser)
+            parsed_table['to'
+            ] = parsed_table[parsed_table.columns[4]].apply(from_to_date_parser)
+            parsed_table['name'] = parsed_table[parsed_table.columns[2]]
+            parsed_table['party'] = parsed_table[parsed_table.columns[7]]
+            parsed_table['government'] = parsed_table[parsed_table.columns[8]]
+            parsed_table['Monarch'] = parsed_table[parsed_table.columns[9]]
+            parsed_table = parsed_table[['from', 'to', 'name', 'party', 'government']]
+            parsed_table.columns = parsed_table.columns.get_level_values(0)
+            parsed_table.drop_duplicates(inplace=True)
+
+            self.parse_errors.append(parsed_table[(parsed_table['to'] == 'parsing error') | (parsed_table['from'] == 'parsing error')])
             parsed_table = parsed_table[
-                (parsed_table[('parsed', 'to')] != 'parsing error') & (parsed_table[('parsed', 'from')] != 'parsing error')]
-            parsed_table[('parsed', 'name')] = parsed_table[('Name(Born–Died)', 'Name(Born–Died)')]
-            parsed_table[('parsed', 'party')] = parsed_table[('Party', 'Party.1')]
-            parsed_table[('parsed', 'government')] = parsed_table[('Government',      'Government')]
-            parsed_table = parsed_table[[x for x in parsed_table.columns if x[0] == 'parsed']]
-            parsed_table.columns = parsed_table.columns.droplevel(0)
+                (parsed_table['to'] != 'parsing error') & (parsed_table['from'] != 'parsing error')]
+
             self.parsed_tables.append(parsed_table)
 
     def parse_tables_us(self):
@@ -89,6 +93,41 @@ class WikiScraper():
             parsed_table.drop_duplicates(inplace=True)
             self.parsed_tables.append(parsed_table)
 
-    def save_tables(self, names):
-        for n, table in enumerate(self.parsed_tables):
-            pickle.dump(table, open(f'{store_location}\{names[n]}.pickle', 'wb'))
+    def parse_tables_gr(self):
+        """ too difficult """
+        for raw_table in self.raw_tables:
+            parsed_table = raw_table.copy()
+            parsed_table[('parsed', 'from')
+            ] = parsed_table[('Term of office',     'Took office')].apply(from_to_date_parser)
+            parsed_table[('parsed', 'to')
+            ] = parsed_table[('Term of office', 'Left office')].apply(from_to_date_parser)
+            self.parse_errors.append(parsed_table[(parsed_table[('parsed', 'to')] == 'parsing error') | (parsed_table[('parsed', 'from')] == 'parsing error')])
+            parsed_table = parsed_table[
+                (parsed_table[('parsed', 'to')] != 'parsing error') & (parsed_table[('parsed', 'from')] != 'parsing error')]
+            parsed_table[('parsed', 'name')] = parsed_table[('Name(Born–Died)', 'Name(Born–Died)')]
+            parsed_table[('parsed', 'party')] = parsed_table[('Party', 'Party.1')]
+            parsed_table[('parsed', 'government')] = parsed_table[('Government',      'Government')]
+            parsed_table = parsed_table[[x for x in parsed_table.columns if x[0] == 'parsed']]
+            parsed_table.columns = parsed_table.columns.droplevel(0)
+            self.parsed_tables.append(parsed_table)
+
+    def parse_tables_uk(self):
+        for raw_table in self.raw_tables:
+            parsed_table = raw_table.copy()
+            parsed_table[('parsed', 'from')
+            ] = parsed_table[('Term of office',     'Took office')].apply(from_to_date_parser)
+            parsed_table[('parsed', 'to')
+            ] = parsed_table[('Term of office', 'Left office')].apply(from_to_date_parser)
+            self.parse_errors.append(parsed_table[(parsed_table[('parsed', 'to')] == 'parsing error') | (parsed_table[('parsed', 'from')] == 'parsing error')])
+            parsed_table = parsed_table[
+                (parsed_table[('parsed', 'to')] != 'parsing error') & (parsed_table[('parsed', 'from')] != 'parsing error')]
+            parsed_table[('parsed', 'name')] = parsed_table[('Name(Born–Died)', 'Name(Born–Died)')]
+            parsed_table[('parsed', 'party')] = parsed_table[('Party', 'Party.1')]
+            parsed_table[('parsed', 'government')] = parsed_table[('Government',      'Government')]
+            parsed_table = parsed_table[[x for x in parsed_table.columns if x[0] == 'parsed']]
+            parsed_table.columns = parsed_table.columns.droplevel(0)
+            self.parsed_tables.append(parsed_table)
+
+    def save_tables(self, output_name):
+        final_table = pd.concat(self.parsed_tables, axis=0)
+        pickle.dump(final_table, open(f'{store_location}\{output_name}.pickle', 'wb'))
