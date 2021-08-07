@@ -57,7 +57,7 @@ class WikiScraper():
             tables = [tables[i] for i in tables_to_keep]
         self.raw_tables = tables
 
-    def parse_tables(self):
+    def parse_tables_uk(self):
         for raw_table in self.raw_tables:
             parsed_table = raw_table.copy()
             parsed_table['from'
@@ -75,7 +75,8 @@ class WikiScraper():
             self.parse_errors.append(parsed_table[(parsed_table['to'] == 'parsing error') | (parsed_table['from'] == 'parsing error')])
             parsed_table = parsed_table[
                 (parsed_table['to'] != 'parsing error') & (parsed_table['from'] != 'parsing error')]
-
+            parsed_table['country'] = 'UK'
+            parsed_table['type'] = 'gov'
             self.parsed_tables.append(parsed_table)
 
     def parse_tables_us(self):
@@ -91,6 +92,8 @@ class WikiScraper():
             parsed_table = parsed_table[(parsed_table['to'] !='parsing error') & (parsed_table['from'] !='parsing error')]
             parsed_table = parsed_table[['name', 'government', 'party', 'from', 'to']]
             parsed_table.drop_duplicates(inplace=True)
+            parsed_table['country'] = 'US'
+            parsed_table['type'] = 'gov'
             self.parsed_tables.append(parsed_table)
 
     def parse_tables_gr(self):
@@ -111,7 +114,7 @@ class WikiScraper():
             parsed_table.columns = parsed_table.columns.droplevel(0)
             self.parsed_tables.append(parsed_table)
 
-    def parse_tables_uk(self):
+    def parse_tables_it(self):
         for raw_table in self.raw_tables:
             parsed_table = raw_table.copy()
             parsed_table[('parsed', 'from')
@@ -126,6 +129,8 @@ class WikiScraper():
             parsed_table[('parsed', 'government')] = parsed_table[('Government',      'Government')]
             parsed_table = parsed_table[[x for x in parsed_table.columns if x[0] == 'parsed']]
             parsed_table.columns = parsed_table.columns.droplevel(0)
+            parsed_table['country'] = 'Italy'
+            parsed_table['type'] = 'gov'
             self.parsed_tables.append(parsed_table)
 
     def save_tables(self, output_name):
